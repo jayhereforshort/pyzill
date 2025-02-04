@@ -3,3 +3,5 @@ urllib3
 flask
 gunicorn
 curl_cffi
+beautifulsoup4
+lxml
