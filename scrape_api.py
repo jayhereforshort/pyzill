@@ -1,5 +1,12 @@
-from flask import Flask, request, jsonify
+import sys
+import os
+
+# Ensure Python can find the `src/` directory
+sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
+
+# Now import pyzill
 import pyzill
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
