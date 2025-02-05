@@ -41,54 +41,44 @@ def scrape_zillow():
 
     try:
         zillow_url = f"https://www.zillow.com/homes/{address.replace(' ', '-')}/"
-
         app.logger.debug(f"Fetching data from: {zillow_url}")
 
-        # Try up to 3 times with different proxies
-        for attempt in range(3):
-            proxy = get_random_proxy()
-            app.logger.debug(f"Using Proxy: {proxy}")
+        # Make request using the rotating proxy
+        response = requests.get(zillow_url, headers=HEADERS, proxies=PROXY, timeout=10)
 
-            try:
-                # Send the request with a random proxy
-                response = requests.get(zillow_url, headers=HEADERS, proxies=proxy, timeout=10)
+        if response.status_code == 403:
+            app.logger.error("Zillow blocked the request even with the rotating proxy (403 Forbidden).")
+            return jsonify({"error": "Zillow blocked this request. Try again later."}), 403
 
-                if response.status_code == 403:
-                    app.logger.warning(f"Proxy blocked (403). Retrying... [{attempt+1}/3]")
-                    continue  # Try another proxy
+        if response.status_code != 200:
+            app.logger.error(f"Failed with status {response.status_code}")
+            return jsonify({"error": f"Request failed. Status code: {response.status_code}"}), response.status_code
 
-                if response.status_code != 200:
-                    app.logger.error(f"Request failed with status {response.status_code}")
-                    return jsonify({"error": f"Request failed. Status code: {response.status_code}"}), response.status_code
+        # Fetch listing details from Zillow
+        property_data = get_from_home_url(zillow_url)
 
-                # Fetch property details
-                property_data = get_from_home_url(zillow_url)
+        if not property_data:
+            app.logger.error(f"No data found for address: {address}")
+            return jsonify({"error": "No data found for this address"}), 404
 
-                if not property_data:
-                    app.logger.error(f"No data found for address: {address}")
-                    return jsonify({"error": "No data found for this address"}), 404
+        data = {
+            "zpid": property_data.get("zpid"),
+            "price_history": property_data.get("priceHistory", []),
+            "zestimate": property_data.get("zestimate", "N/A"),
+            "status": property_data.get("homeStatus", "Unknown"),
+            "zillow_url": zillow_url
+        }
 
-                data = {
-                    "zpid": property_data.get("zpid"),
-                    "price_history": property_data.get("priceHistory", []),
-                    "zestimate": property_data.get("zestimate", "N/A"),
-                    "status": property_data.get("homeStatus", "Unknown"),
-                    "zillow_url": zillow_url
-                }
+        app.logger.debug(f"Scraped Data: {data}")
+        return jsonify(data)
 
-                app.logger.debug(f"Scraped Data: {data}")
-                return jsonify(data)
-
-            except requests.exceptions.RequestException as e:
-                app.logger.warning(f"Request failed with {proxy}: {str(e)}")
-                continue  # Try the next proxy
-
-        return jsonify({"error": "All proxies blocked. Try again later."}), 403
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Request failed: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Request failed: {str(e)}"}), 500
 
     except Exception as e:
-        app.logger.error(f"Error occurred: {str(e)}", exc_info=True)
+        app.logger.error(f"General error occurred: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
