@@ -1,16 +1,14 @@
 import sys
 import os
-
-# Ensure Python can find the `src/` directory
-sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
-
-# Now import pyzill
-import pyzill
-
+import logging
 from flask import Flask, request, jsonify
-from pyzill.details import get_from_home_url  # Scrape Zillow directly
+from pyzill.details import get_from_home_url  # Directly fetch listing details
 
+# Initialize Flask app
 app = Flask(__name__)
+
+# Enable logging
+logging.basicConfig(level=logging.DEBUG)
 
 @app.route("/scrape", methods=["GET"])
 def scrape_zillow():
@@ -22,12 +20,17 @@ def scrape_zillow():
     try:
         zillow_url = f"https://www.zillow.com/homes/{address.replace(' ', '-')}/"
 
-        # Fetch listing details
+        # Log the request
+        app.logger.debug(f"Fetching data from: {zillow_url}")
+
+        # Fetch listing details from Zillow
         property_data = get_from_home_url(zillow_url)
 
         if not property_data:
+            app.logger.error(f"No data found for address: {address}")
             return jsonify({"error": "No data found for this address"}), 404
 
+        # Extract relevant details
         data = {
             "zpid": property_data.get("zpid"),
             "price_history": property_data.get("priceHistory", []),
@@ -35,9 +38,12 @@ def scrape_zillow():
             "status": property_data.get("homeStatus", "Unknown"),
             "zillow_url": zillow_url
         }
+
+        app.logger.debug(f"Scraped Data: {data}")
         return jsonify(data)
 
     except Exception as e:
+        app.logger.error(f"Error occurred: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
