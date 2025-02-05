@@ -17,14 +17,11 @@ app = Flask(__name__)
 # Enable logging
 logging.basicConfig(level=logging.DEBUG)
 
-# Proxy List (Webshare)
-PROXY_LIST = [
-    "http://jmskfoff:4w2hn50bhi2x@198.23.239.134:6540",
-    "http://jmskfoff:4w2hn50bhi2x@207.244.217.165:6712",
-    "http://jmskfoff:4w2hn50bhi2x@107.172.163.27:6543",
-    "http://jmskfoff:4w2hn50bhi2x@64.137.42.112:5157",
-    "http://jmskfoff:4w2hn50bhi2x@173.211.0.148:6641"
-]
+# Webshare Rotating Proxy Configuration
+PROXY = {
+    "http": "http://jmskfoff-rotate:4w2hn50bhi2x@p.webshare.io:80",
+    "https": "http://jmskfoff-rotate:4w2hn50bhi2x@p.webshare.io:80"
+}
 
 # Headers to mimic a real user
 HEADERS = {
