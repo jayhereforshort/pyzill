@@ -32,12 +32,6 @@ HEADERS = {
     "Connection": "keep-alive"
 }
 
-def get_random_proxy():
-    """Select a random proxy from the list and return it in the proper format"""
-    proxy = random.choice(PROXY_LIST)
-    return {"http": proxy, "https": proxy}
-
-
 @app.route("/scrape", methods=["GET"])
 def scrape_zillow():
     address = request.args.get("address")
