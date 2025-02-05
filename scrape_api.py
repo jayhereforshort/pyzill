@@ -38,9 +38,9 @@ HEADERS = {
 
 # Example Zillow Cookies (Replace with real ones)
 COOKIES = {
-    "zguid": "23|67aa3dd9-4332-4c42-b742-dfb456abcd12",
-    "zgsession": "23|abc123xyz456",
-    "JSESSIONID": "abcxyz123456"
+    "zguid": "24|%242c3fe576-ec9a-4b2e-8410-c51b8fa81aef",
+    "zgsession": "21|68a47cdd-e2db-4c0c-ac1c-82e69f6d4f2f",
+    "JSESSIONID": "2002C0737703E3AD149D3FA15884B152"
 }
 
 @app.route("/scrape", methods=["GET"])
